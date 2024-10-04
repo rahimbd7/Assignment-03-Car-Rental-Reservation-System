@@ -1,11 +1,28 @@
-import {  Types } from "mongoose";
+/* eslint-disable no-unused-vars */
+import {  Model, Types } from "mongoose";
+
+export interface IBookingsTime  {
+  startTime: string;
+  endTime?: string;
+}
+
 
 interface IBookings {
     date: Date;
-    userId?: Types.ObjectId; // Reference to user model
-    carId: Types.ObjectId;  // Reference to car model
-    startTime: string; // 24-hour format, e.g., "14:00"
-    endTime?: string;   // 24-hour format, e.g., "16:00"
-    totalCost: number; // Calculated total cost, default 0
+    userId?: Types.ObjectId; 
+    carId: Types.ObjectId;  
+    startTime: string; 
+    endTime?: string;   
+    totalCost: number; 
+  }
+
+
+  export interface IBookingsModel extends Model<IBookings>{
+    isCarAvailable(
+      carId: Types.ObjectId,
+      date: Date,
+      startTime: string,
+      endTime?: string
+  ): Promise<boolean>;
   }
 export default IBookings 
