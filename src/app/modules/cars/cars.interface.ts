@@ -1,3 +1,5 @@
+import { Model } from "mongoose";
+import { Types } from "mongoose";
 
 
 interface ICars {
@@ -13,4 +15,11 @@ interface ICars {
     updatedAt: Date;
 }
 
-export default ICars;
+export interface ICarsModel extends Model<ICars>{
+    isCarAvailable(
+        carId: Types.ObjectId,
+    ): Promise<boolean>;
+}
+export default ICars; 
+
+

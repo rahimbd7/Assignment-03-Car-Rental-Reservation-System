@@ -1,6 +1,7 @@
 // car.model.ts
-import { Schema, model} from 'mongoose';
-import ICars from './cars.interface';
+import { Schema, Types, model} from 'mongoose';
+import ICars, { ICarsModel } from './cars.interface';
+
 
 
 const CarSchema = new Schema<ICars>(
@@ -47,6 +48,15 @@ const CarSchema = new Schema<ICars>(
     }
 );
 
-const CarsModel = model<ICars>('cars', CarSchema);
 
+
+CarSchema.statics.isCarAvailable = async function (carId: Types.ObjectId) {
+    const car = await this.findOne({ _id: carId, isDeleted: false });
+    if (!car) {
+        throw new Error('Car not found or is deleted');
+    }
+    return car.status === 'available';
+};
+
+const CarsModel= model<ICars, ICarsModel>('cars', CarSchema);
 export default CarsModel;

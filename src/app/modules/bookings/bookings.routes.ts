@@ -12,5 +12,7 @@ bookingsRouter.post('/',auth(USER_ROLE.user),validateRequest(BookingsValidationS
 
 bookingsRouter.get('/',auth(USER_ROLE.admin),bookingsControllers.getAllBookings);
 
+bookingsRouter.get('/my-bookings',auth(USER_ROLE.user),bookingsControllers.getUserAllBookings);
+
 
 export default bookingsRouter;
