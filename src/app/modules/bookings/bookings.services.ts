@@ -38,6 +38,44 @@ const bookACarIntoDB = async (payload: Pick<IBookings, "carId" | "date" | "start
     return finalResponse;
 };
 
+
+
+const getAllBookingsFromDB = async (payload: Pick<IBookings, "carId" | "date">) => {
+    const bookings = await BookingsModel.find(payload)
+        .populate({
+            path: 'userId',
+            select: 'name email role phone address createdAt updatedAt',
+            model: 'users'
+        })
+        .populate({
+            path: 'carId',
+            select: 'name description color isElectric status features pricePerHour isDeleted createdAt updatedAt',
+            model: 'cars'
+        })
+        .lean();
+
+    if (!bookings) {
+        throw new Error('Failed to fetch bookings');
+    }
+
+    return bookings.map(booking => ({
+        _id: booking._id,
+        date: booking.date,
+        startTime: booking.startTime,
+        endTime: booking.endTime || null,  // Ensure endTime is null if not present
+        user: booking.userId,
+        car: booking.carId,
+        totalCost: booking.totalCost || 0, // Ensure totalCost is 0 by default
+        createdAt: booking?.createdAt,
+        updatedAt: booking?.updatedAt
+    }));
+};
+
+
+
+
+
 export const bookingsServices = {
-    bookACarIntoDB
+    bookACarIntoDB,
+    getAllBookingsFromDB
 };

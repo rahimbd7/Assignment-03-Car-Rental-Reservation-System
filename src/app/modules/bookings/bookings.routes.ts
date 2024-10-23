@@ -10,5 +10,7 @@ const bookingsRouter  = express.Router();
 
 bookingsRouter.post('/',auth(USER_ROLE.user),validateRequest(BookingsValidationSchemas.AddBookingSchema),bookingsControllers.bookACar);
 
+bookingsRouter.get('/',auth(USER_ROLE.admin),bookingsControllers.getAllBookings);
+
 
 export default bookingsRouter;

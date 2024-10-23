@@ -14,6 +14,8 @@ interface IBookings {
     startTime: string; 
     endTime?: string;   
     totalCost: number; 
+    createdAt?: Date;
+    updatedAt?: Date;
   }
 
 
@@ -22,7 +24,8 @@ interface IBookings {
       carId: Types.ObjectId,
       date: Date,
       startTime: string,
-      endTime?: string
+      endTime?: string,
+     
   ): Promise<boolean>;
   }
 export default IBookings 

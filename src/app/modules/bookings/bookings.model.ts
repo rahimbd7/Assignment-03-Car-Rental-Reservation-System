@@ -9,6 +9,8 @@ const BookingsSchema = new Schema<IBookings,IBookingsModel>({
     startTime: { type: String, required: true, match: /^[0-2][0-9]:[0-5][0-9]$/ },
     endTime: { type: String, default: null, match: /^[0-2][0-9]:[0-5][0-9]$/ },
     totalCost: { type: Number, default: 0 },
+},{
+    timestamps: true
 });
 
 BookingsSchema.statics.isCarAvailable = async function (
