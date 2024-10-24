@@ -1,21 +1,26 @@
-import { IBookingsTime } from "./bookings.interface";
+import IBookings from "./bookings.interface";
 
-export const hasBookingsTimeConflict = (existingTime: IBookingsTime, newBooking: IBookingsTime): boolean => {
-    const existingStartTime = new Date(`1970-01-01T${existingTime.startTime}:00`);
-    const existingEndTime = existingTime.endTime ? new Date(`1970-01-01T${existingTime.endTime}:00`) : null;
+const calculateTotalCost = (payload: Pick<IBookings, "startTime" | "endTime"> & { pricePerHour: number }): number => {
+    const { startTime, endTime, pricePerHour } = payload;
 
-    const newStartTime = new Date(`1970-01-01T${newBooking.startTime}:00`);
-    const newEndTime = newBooking.endTime ? new Date(`1970-01-01T${newBooking.endTime}:00`) : null;
-
-    // Check if there is an ongoing booking
-    if (existingEndTime === null) {
-        return true; // Conflict if there's an ongoing booking
+    if (!endTime) {
+        throw new Error("End time must be provided.");
     }
 
-    // Check for time overlap
-    const isConflict =
-        (newStartTime < existingEndTime && newStartTime >= existingStartTime) || // New start time is within an existing booking
-        (newEndTime && newEndTime > existingStartTime && newEndTime <= existingEndTime); // New end time overlaps with existing booking
+    const [startHour, startMinute] = startTime.split(":").map(Number);
+    const [endHour, endMinute] = endTime.split(":").map(Number);
 
-    return isConflict||false;
+    const startInHours = startHour + startMinute / 60;
+    const endInHours = endHour + endMinute / 60;
+
+    // Check if endTime is earlier than startTime
+    if (endInHours < startInHours) {
+        throw new Error("End time cannot be earlier than start time.");
+    }
+
+    const duration = endInHours - startInHours;
+
+    return duration * pricePerHour;
 };
+
+export default calculateTotalCost;

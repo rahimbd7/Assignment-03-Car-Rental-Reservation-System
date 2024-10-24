@@ -1,10 +1,7 @@
 /* eslint-disable no-unused-vars */
-import {  Model, Types } from "mongoose";
+import {   Types } from "mongoose";
 
-export interface IBookingsTime  {
-  startTime: string;
-  endTime?: string;
-}
+
 
 
 interface IBookings {
@@ -19,13 +16,5 @@ interface IBookings {
   }
 
 
-  export interface IBookingsModel extends Model<IBookings>{
-    isCarAvailable(
-      carId: Types.ObjectId,
-      date: Date,
-      startTime: string,
-      endTime?: string,
-     
-  ): Promise<boolean>;
-  }
+
 export default IBookings 

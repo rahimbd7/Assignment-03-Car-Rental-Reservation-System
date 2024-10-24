@@ -14,5 +14,7 @@ bookingsRouter.get('/',auth(USER_ROLE.admin),bookingsControllers.getAllBookings)
 
 bookingsRouter.get('/my-bookings',auth(USER_ROLE.user),bookingsControllers.getUserAllBookings);
 
+// bookingsRouter.put('/return',auth(USER_ROLE.admin),bookingsControllers.returnCar);
+
 
 export default bookingsRouter;

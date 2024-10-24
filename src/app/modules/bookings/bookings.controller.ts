@@ -41,8 +41,20 @@ const getUserAllBookings = catchAsync(async (req, res) => {
     }
 })
 
+
+const returnCar = catchAsync(async (req, res) => {
+    const {bookingId,endTime} = req.body;
+    const result = await bookingsServices.handleReturnACar(bookingId,endTime);
+    if (result) {
+        sendResponse(res, { statusCode: httpStatus.OK, success: true, message: 'Car returned successfully', data: result })
+    } else {
+        throw new Error('not possible to return car')
+    }
+})
+
 export const bookingsControllers = {
     bookACar,
     getAllBookings,
-    getUserAllBookings
+    getUserAllBookings,
+    returnCar
 }

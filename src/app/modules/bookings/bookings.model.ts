@@ -1,8 +1,8 @@
-import { Schema, Types, model } from 'mongoose';
-import IBookings, { IBookingsModel, IBookingsTime } from './bookings.interface';
-import { hasBookingsTimeConflict } from './bookings.utils';
+import { Schema,  model } from 'mongoose';
+import IBookings from './bookings.interface';
 
-const BookingsSchema = new Schema<IBookings,IBookingsModel>({
+
+const BookingsSchema = new Schema<IBookings>({
     date: { type: Date, required: true },
     userId: { type: Schema.Types.ObjectId, ref: 'users' },
     carId: { type: Schema.Types.ObjectId, ref: 'cars', required: true },
@@ -13,32 +13,6 @@ const BookingsSchema = new Schema<IBookings,IBookingsModel>({
     timestamps: true
 });
 
-BookingsSchema.statics.isCarAvailable = async function (
-    carId: Types.ObjectId,
-    date: Date,
-    startTime: string,
-    endTime?: string
-) {
-    // Fetch any existing bookings on the same date for the car
-    const existingBookings = await this.find({
-        carId,
-        date,
-    }).select('startTime endTime');
-
-    // Create the new booking object for checking
-    const newBooking: IBookingsTime = { startTime, endTime };
-
-    for (const booking of existingBookings) {
-        const existingBooking: IBookingsTime = {
-            startTime: booking.startTime,
-            endTime: booking.endTime
-        };
-        if (hasBookingsTimeConflict(existingBooking, newBooking)) {
-            return false; 
-        }
-    }
-    return true;
-};
 
 
 
@@ -51,6 +25,7 @@ BookingsSchema.statics.isCarAvailable = async function (
 
 
 
-const BookingsModel = model<IBookings,IBookingsModel>('bookings', BookingsSchema);
+
+const BookingsModel = model<IBookings>('bookings', BookingsSchema);
 
 export default BookingsModel;

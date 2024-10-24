@@ -4,6 +4,7 @@ import IBookings from "./bookings.interface";
 import BookingsModel from "./bookings.model";
 
 import mongoose from 'mongoose';
+import calculateTotalCost from "./bookings.utils";
 
 const bookACarIntoDB = async (
     payload: Pick<IBookings, "carId" | "date" | "startTime">,
@@ -143,12 +144,83 @@ const getUserAllBookingsFromDB = async (userId: string) => {
 };
 
 
-// const handleCarReturn = async (bookingId: string,endTime:string) => {
-    
-// }
+
+const handleReturnACar = async (bookingId: string, endTime: string) => {
+    const session = await mongoose.startSession(); // Start a session for transaction
+    session.startTransaction(); // Start the transaction
+
+    try {
+        // Step 1: Find the booking by bookingId
+        const booking = await BookingsModel.findById(bookingId).session(session);
+        if (!booking) {
+            throw new Error('Booking not found');
+        }
+
+        // Step 2: Fetch car data
+        const car = await CarsModel.findById(booking.carId).session(session);
+        if (!car) {
+            throw new Error('Car not found');
+        }
+
+        // Step 3: Update booking with the new endTime
+        booking.endTime = endTime;
+
+        // Step 4: Calculate the total cost using the calculateTotalCost function
+        const totalCost = calculateTotalCost({
+            startTime: booking.startTime,
+            endTime: endTime,
+            pricePerHour: car.pricePerHour, // Ensure that car.pricePerHour is available
+        });
+        booking.totalCost = totalCost;
+
+        // Step 5: Save the updated booking
+        await booking.save({ session });
+
+        // Step 6: Update the car status to "available"
+        car.status = 'available';
+        await car.save({ session });
+
+        // Step 7: Commit the transaction
+        await session.commitTransaction();
+        session.endSession();
+
+        // Step 8: Populate the booking details and return the response
+        const populatedBooking = await (await booking.populate({
+            path: 'userId',
+            select: 'name email role phone address',
+        })).populate({
+            path: 'carId',
+            select: 'name description color isElectric status features pricePerHour isDeleted createdAt updatedAt',
+        }); 
+
+        return {
+            success: true,
+            statusCode: 200,
+            message: 'Car returned successfully',
+            data: {
+                _id: booking._id,
+                date: booking.date,
+                startTime: booking.startTime,
+                endTime: booking.endTime,
+                user: populatedBooking.userId,
+                car: populatedBooking.carId,
+                totalCost: booking.totalCost,
+                createdAt: booking.createdAt,
+                updatedAt: booking.updatedAt,
+            }
+        };
+
+    } catch (error: any) {
+        await session.abortTransaction();
+        session.endSession();
+        throw new Error(error.message);
+    }
+};
+
 
 export const bookingsServices = {
     bookACarIntoDB,
     getAllBookingsFromDB,
-    getUserAllBookingsFromDB
+    getUserAllBookingsFromDB,
+    handleReturnACar
 };
