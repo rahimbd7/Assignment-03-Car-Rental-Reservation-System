@@ -76,11 +76,11 @@ const bookACarIntoDB = async (
 };
 
 
+const getAllBookingsFromDB = async (payload: Partial<Pick<IBookings, "carId" | "date">>) => {
+    
+    const query = Object.keys(payload).length > 0 ? payload : {};
 
-
-
-const getAllBookingsFromDB = async (payload: Pick<IBookings, "carId" | "date">) => {
-    const bookings = await BookingsModel.find(payload)
+    const bookings = await BookingsModel.find(query)
         .populate({
             path: 'userId',
             select: 'name email role phone address createdAt updatedAt',
@@ -93,23 +93,18 @@ const getAllBookingsFromDB = async (payload: Pick<IBookings, "carId" | "date">) 
         })
         .lean();
 
-    if (!bookings) {
-        throw new Error('Failed to fetch bookings');
-    }
-
     return bookings.map(booking => ({
         _id: booking._id,
         date: booking.date,
         startTime: booking.startTime,
-        endTime: booking.endTime || null,  
+        endTime: booking.endTime || null,
         user: booking.userId,
         car: booking.carId,
-        totalCost: booking.totalCost || 0, 
+        totalCost: booking.totalCost || 0,
         createdAt: booking?.createdAt,
         updatedAt: booking?.updatedAt
     }));
 };
-
 
 
 const getUserAllBookingsFromDB = async (userId: string) => {
@@ -150,41 +145,51 @@ const handleReturnACar = async (bookingId: string, endTime: string) => {
     session.startTransaction(); // Start the transaction
 
     try {
-        // Step 1: Find the booking by bookingId
+        //  Find the booking by bookingId
         const booking = await BookingsModel.findById(bookingId).session(session);
         if (!booking) {
-            throw new Error('Booking not found');
+            return { 
+                success: false, 
+                statusCode: 404, 
+                message: "No Data Found", 
+                data: [] 
+            };
         }
 
-        // Step 2: Fetch car data
+        // Fetch car data
         const car = await CarsModel.findById(booking.carId).session(session);
         if (!car) {
-            throw new Error('Car not found');
+            return { 
+                success: false, 
+                statusCode: 404, 
+                message: "No Data Found", 
+                data: [] 
+            };
         }
 
-        // Step 3: Update booking with the new endTime
+        //  Update booking with the new endTime
         booking.endTime = endTime;
 
-        // Step 4: Calculate the total cost using the calculateTotalCost function
+        // Calculate the total cost using the calculateTotalCost function
         const totalCost = calculateTotalCost({
             startTime: booking.startTime,
             endTime: endTime,
-            pricePerHour: car.pricePerHour, // Ensure that car.pricePerHour is available
+            pricePerHour: car.pricePerHour, 
         });
         booking.totalCost = totalCost;
 
-        // Step 5: Save the updated booking
+        // Save the updated booking
         await booking.save({ session });
 
-        // Step 6: Update the car status to "available"
+        // Update the car status to "available"
         car.status = 'available';
         await car.save({ session });
 
-        // Step 7: Commit the transaction
+        // Commit the transaction
         await session.commitTransaction();
         session.endSession();
 
-        // Step 8: Populate the booking details and return the response
+        // Populate the booking details and return the response
         const populatedBooking = await (await booking.populate({
             path: 'userId',
             select: 'name email role phone address',
