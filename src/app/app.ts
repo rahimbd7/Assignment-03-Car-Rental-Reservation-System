@@ -11,6 +11,5 @@ app.get('/', (req: Request, res: Response) => {
   res.send('hello world')
 })
 
-
-app.use('/api',Routes)
+app.use('/api', Routes)
 export default app
