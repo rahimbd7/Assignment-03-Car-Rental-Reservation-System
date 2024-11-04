@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node ./dist/app/server.js",
     "dev": "tsc --watch",
+    "build": "tsc",
     "lint": "eslint src --ignore-path .eslintignore --ext .ts",
     "lint:fix": "npm run lint -- --fix",
     "prettier": "prettier --ignore-path .gitignore --write \"./src/**/*.+(js|ts|json)\"",
